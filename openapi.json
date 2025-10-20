@@ -1,0 +1,4231 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TruehearAPI Documentation",
+    "version": "1.0.0",
+    "description": "Truehear API Management ",
+    "contact": {
+      "name": "Truehear Team",
+      "email": "truehearteam@gmail.com"
+    }
+  },
+  "externalDocs": {
+    "description": "Project README",
+    "url": "https://example.com/docs"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8888",
+      "description": "Development"
+    },
+    {
+      "url": "https://localhost:8888",
+      "description": "Production"
+    }
+  ],
+  "tags": [],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AppError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable message."
+          },
+          "details": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Optional context (avoid secrets/PII)."
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "example": {
+          "error": "User not found",
+          "details": {
+            "id": "123"
+          }
+        }
+      },
+      "CustomerAdminUser": {
+        "type": "object",
+        "description": "Representation of a newly created customer administrative user.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Auto-generated unique identifier (mirrors MongoDB `_id`).",
+            "example": "652f1d22c7eebc001fc05a10"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Decrypted email address of the user.",
+            "example": "admin@acmehospital.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Alice"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+358401234567"
+          },
+          "username": {
+            "type": "string",
+            "example": "alice.smith"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-15T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-15T10:00:00.000Z"
+          }
+        }
+      },
+      "CustomerAdminCredential": {
+        "type": "object",
+        "description": "Secure credential record associated with the user.",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "652f1d22c7eebc001fc05a10"
+          },
+          "alg": {
+            "type": "string",
+            "enum": [
+              "bcrypt",
+              "argon2"
+            ],
+            "example": "bcrypt"
+          },
+          "pepperVersion": {
+            "type": "integer",
+            "example": 1
+          },
+          "mustResetAtNextLogin": {
+            "type": "boolean",
+            "example": true
+          },
+          "passwordUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-15T10:00:00.000Z"
+          }
+        }
+      },
+      "CustomerAdminMembership": {
+        "type": "object",
+        "description": "Membership record linking the user to tenant and provider roles.",
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "example": "6520d33bef1b2b001ef0a124"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "provider_admin"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "active",
+              "paused",
+              "suspended",
+              "terminated"
+            ],
+            "example": "active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-15T10:00:00.000Z"
+          }
+        }
+      },
+      "CreateCustomerAdminUserRequest": {
+        "type": "object",
+        "required": [
+          "tenantId",
+          "providerId",
+          "email",
+          "firstName"
+        ],
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "Tenant that owns this customer organization.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Provider associated with the customer organization.",
+            "example": "6520d33bef1b2b001ef0a124"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@acmehospital.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Alice"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+358401234567"
+          },
+          "username": {
+            "type": "string",
+            "example": "alice.smith"
+          }
+        }
+      },
+      "CreateCustomerAdminUserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Customer admin user, credentials, and memberships created successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/CustomerAdminUser"
+              },
+              "credential": {
+                "$ref": "#/components/schemas/CustomerAdminCredential"
+              },
+              "temporaryPassword": {
+                "type": "string",
+                "description": "Temporary system-generated password for first login. Only visible once.",
+                "example": "Abc!9xPq@Lm2"
+              },
+              "memberships": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CustomerAdminMembership"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerAdminUserValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "email is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerAdminUserConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "User with this email already exists"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "email": "admin@acmehospital.com"
+            }
+          }
+        }
+      },
+      "CustomerLoginRequest": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Username or email used for login.",
+            "example": "admin@acmehospital.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Plaintext password entered by the user.",
+            "example": "secret123"
+          }
+        }
+      },
+      "Membership": {
+        "type": "object",
+        "description": "Represents a user's role assignment within a tenant or provider scope.",
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "Identifier of the tenant organization.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Identifier of the provider (if applicable).",
+            "example": "6520d33bef1b2b001ef0a124"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Roles granted to this user in the given context.",
+            "example": [
+              "provider_admin"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional list of directly granted permissions.",
+            "example": [
+              "patient.read",
+              "appointment.write"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "revoked"
+            ],
+            "example": "active"
+          }
+        }
+      },
+      "CustomerLoginUser": {
+        "type": "object",
+        "description": "Authenticated user information returned after successful login.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique user identifier (MongoDB ObjectId).",
+            "example": "6520d31aef1b2b001ef0a123"
+          },
+          "username": {
+            "type": "string",
+            "example": "admin"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@acmehospital.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Alice"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "memberships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Membership"
+            }
+          }
+        }
+      },
+      "CustomerLoginResponse": {
+        "type": "object",
+        "description": "Successful login response including Phantom token and membership context.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Login successful"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "tokenType": {
+                "type": "string",
+                "enum": [
+                  "phantom"
+                ],
+                "example": "phantom"
+              },
+              "phantomToken": {
+                "type": "string",
+                "example": "phtm_AQIDBAUGBwgJCgsMDQ4PEA"
+              },
+              "expiresAt": {
+                "type": "object",
+                "properties": {
+                  "utc": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2025-10-15T12:00:00.000Z"
+                  },
+                  "local": {
+                    "type": "string",
+                    "example": "15 Oct 2025, 15:00"
+                  }
+                }
+              },
+              "user": {
+                "$ref": "#/components/schemas/CustomerLoginUser"
+              }
+            }
+          }
+        }
+      },
+      "CustomerLoginErrorResponse": {
+        "type": "object",
+        "description": "Standardized error response for authentication failures.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid credentials"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional machine-readable error code.",
+            "example": "PASSWORD_RESET_REQUIRED"
+          }
+        }
+      },
+      "CustomerUserCreateRequest": {
+        "type": "object",
+        "required": [
+          "tenantId",
+          "email"
+        ],
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "The unique identifier of the tenant (organization) to which the user belongs.",
+            "example": "6520d31aef1b2b001ef0a123"
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The provider (hospital or clinic) identifier under the tenant.",
+            "example": "6520d33bef1b2b001ef0a124"
+          },
+          "siteId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional site identifier under the provider, for granular access scoping.",
+            "example": "6520d341ef1b2b001ef0a128"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "The new user's email address (must be unique across the tenant).",
+            "example": "doctor@acmehospital.com"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The user's first name.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The user's last name.",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Optional contact phone number.",
+            "example": "+358401234567"
+          },
+          "username": {
+            "type": "string",
+            "description": "Optional username for login (if different from email).",
+            "example": "jane.doe"
+          },
+          "roles": {
+            "type": "array",
+            "description": "List of role keys to assign to this user. If not specified, defaults to `[\"provider_staff\"]`.\n",
+            "items": {
+              "type": "string",
+              "enum": [
+                "tenant_admin",
+                "tenant_manager",
+                "tenant_hr_manager",
+                "tenant_it_manager",
+                "tenant_compliance",
+                "provider_admin",
+                "provider_manager",
+                "provider_clinician",
+                "provider_staff"
+              ]
+            },
+            "example": [
+              "provider_clinician"
+            ]
+          }
+        }
+      },
+      "CustomerUserCreateSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Customer user created successfully with credentials and membership"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "description": "The created user document.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "68ef8a4bf0c45e001fe034a9"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "doctor@acmehospital.com"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "Jane"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  }
+                }
+              },
+              "credential": {
+                "type": "object",
+                "description": "The associated credential record.",
+                "properties": {
+                  "mustResetAtNextLogin": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              },
+              "temporaryPassword": {
+                "type": "string",
+                "description": "The randomly generated temporary password. Shown **only once** in the response for security.\n",
+                "example": "X@9mAc4k!2Pd"
+              },
+              "memberships": {
+                "type": "array",
+                "description": "List of membership entries for the new user.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tenantId": {
+                      "type": "string",
+                      "example": "6520d31aef1b2b001ef0a123"
+                    },
+                    "providerId": {
+                      "type": "string",
+                      "example": "6520d33bef1b2b001ef0a124"
+                    },
+                    "siteId": {
+                      "type": "string",
+                      "example": "6520d341ef1b2b001ef0a128"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "provider_clinician"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerUserCreateValidationError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "description": "Detailed field-level validation messages.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "email is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerUserCreateForbiddenResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied — requires tenant_admin or provider_admin role"
+          }
+        }
+      },
+      "CustomerUserCreateConflictResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "A user with this email already exists"
+          }
+        }
+      },
+      "CustomerUserCreateNotFoundResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Tenant, provider, or site not found"
+          }
+        }
+      },
+      "CustomerUserCreateServerErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to create customer user"
+          }
+        }
+      },
+      "CustomerUserProfileUpdateRequest": {
+        "type": "object",
+        "description": "Fields that may be updated by an authorized administrator.",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "Updated first name of the user.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Updated last name of the user.",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Optional contact number.",
+            "example": "+358401234567"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current user status (e.g., active, inactive, suspended).",
+            "example": "active"
+          }
+        }
+      },
+      "CustomerUserProfileUpdateSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "User profile updated successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "description": "The updated user document.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "6531da1f12a3bc002ff034e9"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "Jane"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "+358401234567"
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "active"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerUserMembershipUpdateRequest": {
+        "type": "object",
+        "required": [
+          "membershipId",
+          "roles"
+        ],
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "description": "The unique identifier of the target membership to update.",
+            "example": "6541aab3b02ccf001ff1a3e9"
+          },
+          "roles": {
+            "type": "array",
+            "description": "List of new roles assigned to the membership.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "tenant_admin",
+                "tenant_manager",
+                "tenant_hr_manager",
+                "tenant_it_manager",
+                "tenant_compliance",
+                "provider_admin",
+                "provider_manager",
+                "provider_clinician",
+                "provider_staff"
+              ]
+            },
+            "example": [
+              "provider_clinician"
+            ]
+          }
+        }
+      },
+      "CustomerUserMembershipUpdateSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Membership roles updated successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "targetUserId": {
+                "type": "string",
+                "example": "6531da1f12a3bc002ff034e9"
+              },
+              "membershipId": {
+                "type": "string",
+                "example": "6541aab3b02ccf001ff1a3e9"
+              },
+              "newRoles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "provider_clinician",
+                  "provider_viewer"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "CustomerUserPatchValidationError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "firstName must be a string"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "firstName"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerUserPatchForbiddenResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied — requires tenant_admin or provider_admin role"
+          }
+        }
+      },
+      "CustomerUserPatchNotFoundResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Target user or membership not found"
+          }
+        }
+      },
+      "CustomerUserPatchServerErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to update user profile or membership"
+          }
+        }
+      },
+      "AuthDecodeUser": {
+        "type": "object",
+        "description": "Basic representation of an authenticated user.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique user ID (mirrors MongoDB `_id`).",
+            "example": "652a8a4bf0c45e001fe034a9"
+          },
+          "username": {
+            "type": "string",
+            "description": "User’s unique username within the platform.",
+            "example": "admin"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User’s email address.",
+            "example": "admin@truehear.com"
+          },
+          "systemRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of system-level roles assigned to the user.",
+            "example": [
+              "system_admin"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Effective permissions for the current session.",
+            "example": [
+              "tenant.manage",
+              "provider.manage"
+            ]
+          }
+        }
+      },
+      "AuthDecodeAuthContext": {
+        "type": "object",
+        "description": "Information about the active authentication context.",
+        "properties": {
+          "phantomToken": {
+            "type": "string",
+            "description": "The opaque token used for authentication.",
+            "example": "phtm_AQIDBAUGBwgJCgsMDQ4PEA"
+          },
+          "jwt": {
+            "type": "string",
+            "description": "The signed JWT (only visible in development mode).",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "payloadKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of top-level keys present in the decoded JWT payload.",
+            "example": [
+              "sub",
+              "username",
+              "email",
+              "systemRoles",
+              "iat",
+              "exp"
+            ]
+          }
+        }
+      },
+      "AuthDecodeSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Decoded successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/AuthDecodeUser"
+              },
+              "auth": {
+                "$ref": "#/components/schemas/AuthDecodeAuthContext"
+              },
+              "environment": {
+                "type": "string",
+                "example": "development"
+              }
+            }
+          }
+        }
+      },
+      "AuthDecodeProductionResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Authentication verified (limited output in production)"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "652a8a4bf0c45e001fe034a9"
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "admin@truehear.com"
+                  }
+                }
+              },
+              "environment": {
+                "type": "string",
+                "example": "production"
+              }
+            }
+          }
+        }
+      },
+      "AuthDecodeErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Unauthorized — authentication context not available"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": "Invalid token signature"
+          }
+        }
+      },
+      "PlatformLoginRequest": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Username **or** email used to authenticate the platform account.",
+            "example": "admin@truehear.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Plain-text password (will be verified against stored hash).",
+            "example": "SuperSecret123"
+          }
+        }
+      },
+      "PlatformLoginSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Login successful"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "tokenType": {
+                "type": "string",
+                "enum": [
+                  "phantom"
+                ],
+                "example": "phantom",
+                "description": "Indicates the token wrapper type (Truehear uses phantom tokens for enhanced security)."
+              },
+              "phantomToken": {
+                "type": "string",
+                "description": "Short-lived phantom token to exchange for full JWT in secure contexts.",
+                "example": "phtm_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "expiresAt": {
+                "type": "object",
+                "properties": {
+                  "utc": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2025-10-12T11:45:00.000Z"
+                  },
+                  "local": {
+                    "type": "string",
+                    "description": "Expiration time formatted in user’s local timezone.",
+                    "example": "12 Oct 2025, 14:45"
+                  }
+                }
+              },
+              "token": {
+                "type": "string",
+                "description": "Signed JWT (for internal verification only).",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "user": {
+                "type": "object",
+                "description": "Authenticated platform user details.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "652a8a4bf0c45e001fe034a9"
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@truehear.com"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "systemRoles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "system_admin"
+                    ],
+                    "description": "Assigned platform-level system roles."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PlatformLoginValidationError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "password is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "password"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PlatformLoginUnauthorizedResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid credentials"
+          }
+        }
+      },
+      "PlatformLoginLockedResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Account locked until 12 Oct 2025, 15:00 (Europe/Helsinki)"
+          }
+        }
+      },
+      "PlatformLoginForbiddenResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "No system-level roles assigned"
+          }
+        }
+      },
+      "PlatformLoginServerErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Login failed"
+          }
+        }
+      },
+      "Site": {
+        "type": "object",
+        "description": "Representation of a physical or virtual healthcare delivery site under a provider.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Auto-generated unique ID (mirrors MongoDB `_id`).",
+            "example": "6530b12a5a1dce001fd032a5"
+          },
+          "tenantId": {
+            "type": "string",
+            "description": "Reference to the tenant that owns this site.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Reference to the parent provider entity.",
+            "example": "652a8a4bf0c45e001fe034a9"
+          },
+          "siteCode": {
+            "type": "string",
+            "description": "Auto-generated, provider-scoped site code (e.g. \"STE-0001\").",
+            "example": "STE-0001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the site (branch, facility, or operational unit).",
+            "example": "Downtown Clinic"
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Optional short or historical names for the site.",
+            "items": {
+              "type": "string",
+              "example": "Central Health Hub"
+            }
+          },
+          "telecom": {
+            "type": "object",
+            "description": "Optional contact information for the site.",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "contact@downtownclinic.fi"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://downtownclinic.fi"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Optional list of physical address records for the site.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "operational",
+                    "billing",
+                    "shipping",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "line1": {
+                  "type": "string",
+                  "example": "123 Health Street"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "region": {
+                  "type": "string",
+                  "example": "Uusimaa"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "00100"
+                },
+                "country": {
+                  "type": "string",
+                  "description": "ISO 3166-1 alpha-2 code.",
+                  "example": "FI"
+                },
+                "geo": {
+                  "type": "object",
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "example": 60.1699
+                    },
+                    "lng": {
+                      "type": "number",
+                      "example": 24.9384
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone string (e.g., \"Europe/Helsinki\").",
+            "example": "Europe/Helsinki"
+          },
+          "tags": {
+            "type": "array",
+            "description": "Optional metadata tags attached to the site.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "example": "department"
+                },
+                "value": {
+                  "type": "string",
+                  "example": "Outpatient"
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "closed"
+            ],
+            "description": "Current operational status of the site.",
+            "example": "active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-14T08:45:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-14T09:10:00.000Z"
+          }
+        }
+      },
+      "CreateSiteRequest": {
+        "type": "object",
+        "required": [
+          "tenantId",
+          "providerId",
+          "name"
+        ],
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "Tenant that owns this site.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Provider under which this site is created.",
+            "example": "652a8a4bf0c45e001fe034a9"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the site or facility.",
+            "maxLength": 256,
+            "example": "Downtown Clinic"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "Central Medical"
+            }
+          },
+          "telecom": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "info@downtownclinic.fi"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://downtownclinic.fi"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "operational",
+                    "billing",
+                    "shipping",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "region": {
+                  "type": "string",
+                  "example": "Uusimaa"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "00100"
+                },
+                "country": {
+                  "type": "string",
+                  "example": "FI"
+                },
+                "geo": {
+                  "type": "object",
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "example": 60.17
+                    },
+                    "lng": {
+                      "type": "number",
+                      "example": 24.94
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Optional timezone identifier.",
+            "example": "Europe/Helsinki"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "example": "floor"
+                },
+                "value": {
+                  "type": "string",
+                  "example": "2"
+                }
+              }
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "authorId": {
+                  "type": "string",
+                  "example": "user_123"
+                },
+                "body": {
+                  "type": "string",
+                  "example": "Initial configuration for outpatient services."
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "closed"
+            ],
+            "example": "draft"
+          }
+        }
+      },
+      "CreateSiteResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Site created successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Site"
+          }
+        }
+      },
+      "SiteValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "Invalid email address"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "telecom.email"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SiteConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Duplicate siteCode or unique field"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "siteCode": "STE-0001"
+            }
+          }
+        }
+      },
+      "Provider": {
+        "type": "object",
+        "description": "Updated provider entity.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Auto-generated MongoDB ObjectId (stringified).",
+            "example": "652f1d22c7eebc001fc05a10"
+          },
+          "tenantId": {
+            "type": "string",
+            "description": "MongoDB ObjectId of the tenant that owns this provider.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerCode": {
+            "type": "string",
+            "description": "Unique, tenant-scoped provider code (auto-generated).",
+            "example": "PRV-00001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Public display name of the provider.",
+            "example": "Acme Hospital - Updated"
+          },
+          "legalName": {
+            "type": "string",
+            "description": "Legal or registered name (optional).",
+            "example": "Acme Healthcare Oy"
+          },
+          "type": {
+            "type": "object",
+            "description": "FHIR-style provider type coding.",
+            "properties": {
+              "system": {
+                "type": "string",
+                "description": "Must equal the TrueHear FHIR CodeSystem URL.",
+                "example": "https://truehear.fi/fhir/CodeSystem/provider-type"
+              },
+              "code": {
+                "type": "string",
+                "description": "Provider category code.",
+                "enum": [
+                  "hospital_system",
+                  "hospital",
+                  "clinic_network",
+                  "corporate",
+                  "practice",
+                  "telemedicine",
+                  "other"
+                ],
+                "example": "hospital"
+              },
+              "display": {
+                "type": "string",
+                "example": "Hospital"
+              }
+            }
+          },
+          "telecom": {
+            "type": "object",
+            "description": "Contact details for the provider.",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "admin@acmehospital.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://acmehospital.com"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Optional list of provider address records.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "registered",
+                    "billing",
+                    "operational",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "line1": {
+                  "type": "string",
+                  "example": "123 Health St"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "country": {
+                  "type": "string",
+                  "description": "ISO 3166-1 alpha-2 country code.",
+                  "example": "FI"
+                }
+              }
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Optional short or historical names.",
+            "items": {
+              "type": "string",
+              "example": "Acme Clinic"
+            }
+          },
+          "specialties": {
+            "type": "array",
+            "description": "Optional provider specialties (FHIR-style codings).",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "cardiology"
+                },
+                "system": {
+                  "type": "string",
+                  "example": "http://snomed.info/sct"
+                },
+                "display": {
+                  "type": "string",
+                  "example": "Cardiology"
+                },
+                "isPrimary": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "merged"
+            ],
+            "description": "Current lifecycle state.",
+            "example": "active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-11T14:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-12T14:30:00.000Z"
+          }
+        }
+      },
+      "CreateProviderRequest": {
+        "type": "object",
+        "required": [
+          "tenantId",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "Tenant that owns this provider.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "example": "Acme Hospital"
+          },
+          "legalName": {
+            "type": "string",
+            "example": "Acme Healthcare Oy"
+          },
+          "type": {
+            "type": "object",
+            "required": [
+              "system",
+              "code"
+            ],
+            "properties": {
+              "system": {
+                "type": "string",
+                "example": "https://truehear.fi/fhir/CodeSystem/provider-type"
+              },
+              "code": {
+                "type": "string",
+                "enum": [
+                  "hospital",
+                  "clinic_network",
+                  "telemedicine",
+                  "other"
+                ],
+                "example": "hospital"
+              }
+            }
+          },
+          "telecom": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "contact@acmehospital.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "country": {
+                  "type": "string",
+                  "example": "FI"
+                }
+              }
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "Acme Medical"
+            }
+          },
+          "specialties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "pediatrics"
+                },
+                "system": {
+                  "type": "string",
+                  "example": "http://snomed.info/sct"
+                },
+                "isPrimary": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "merged"
+            ],
+            "example": "draft"
+          }
+        }
+      },
+      "CreateProviderResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Provider created successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Provider"
+          }
+        }
+      },
+      "ProviderValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid provider ID format"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "Invalid email address"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "telecom.email"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ProviderConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Duplicate providerCode"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "providerCode": "PRV-00001"
+            }
+          }
+        }
+      },
+      "GetProviderResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Provider retrieved successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Provider"
+          }
+        }
+      },
+      "ProviderNotFoundResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Provider not found"
+          }
+        }
+      },
+      "ProviderUnauthorizedResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Missing or invalid Authorization header"
+          }
+        }
+      },
+      "PaginatedProviders": {
+        "type": "object",
+        "description": "Paginated response for provider listings.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Provider"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      },
+      "ProviderSearchResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Providers retrieved successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedProviders"
+          }
+        }
+      },
+      "ProviderSearchErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to search providers"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "error": "Invalid tenantId format"
+            }
+          }
+        }
+      },
+      "UpdateProviderRequest": {
+        "type": "object",
+        "description": "Partial update object for a Provider resource. Only include fields that need to change.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "example": "Acme Hospital - Updated"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "merged"
+            ],
+            "example": "active"
+          },
+          "telecom": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "admin@acmehospital.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "registered",
+                    "billing",
+                    "operational",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "country": {
+                  "type": "string",
+                  "example": "FI"
+                }
+              }
+            }
+          },
+          "specialties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "CARD"
+                },
+                "system": {
+                  "type": "string",
+                  "example": "https://truehear.fi/fhir/CodeSystem/specialties"
+                },
+                "isPrimary": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "name": "Acme Hospital - Updated",
+          "status": "active",
+          "telecom": {
+            "email": "admin@acmehospital.com",
+            "phone": "+358401234567"
+          }
+        }
+      },
+      "UpdateProviderResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Provider updated successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Provider"
+          }
+        }
+      },
+      "UpdateProviderErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Provider validation failed"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "field": "telecom.email",
+              "error": "Invalid email address"
+            }
+          }
+        }
+      },
+      "Tenant": {
+        "type": "object",
+        "description": "Representation of a tenant entity in the system.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Auto-generated unique ID (mirrors MongoDB `_id`).",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "tenantCode": {
+            "type": "string",
+            "description": "Server-generated unique code for the tenant (immutable).",
+            "example": "ACME001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tenant.",
+            "example": "Acme Corporation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "prospect",
+              "active",
+              "suspended",
+              "closed"
+            ],
+            "description": "Current lifecycle status of the tenant.",
+            "example": "active"
+          },
+          "telecom": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "info@acme.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358401234567"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://acme.com"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "registered",
+                    "billing",
+                    "operational",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "line1": {
+                  "type": "string",
+                  "example": "123 Main St"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Helsinki"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "00100"
+                },
+                "country": {
+                  "type": "string",
+                  "description": "ISO 3166-1 alpha-2 country code",
+                  "example": "FI"
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-09-30T12:34:56.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-09-30T12:34:56.000Z"
+          }
+        }
+      },
+      "CreateTenantRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Human-readable name of the tenant.",
+            "example": "Acme Corporation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "prospect",
+              "active",
+              "suspended",
+              "closed"
+            ],
+            "description": "Lifecycle status (default = prospect).",
+            "example": "active"
+          },
+          "telecom": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "info@acme.com"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line1": {
+                  "type": "string",
+                  "example": "123 Main St"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "90210"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateTenantResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Tenant created successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Tenant"
+          }
+        }
+      },
+      "TenantValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "Invalid email address"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "telecom.email"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TenantConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Duplicate key error"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "tenantCode": "ACME001"
+            }
+          }
+        }
+      },
+      "TestItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "12345"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ada"
+          },
+          "message": {
+            "type": "string",
+            "example": "Hello world"
+          }
+        }
+      },
+      "CreateTestRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Required name of the item",
+            "example": "Ada"
+          },
+          "message": {
+            "type": "string",
+            "description": "Optional free-form message (max 500 characters)",
+            "example": "hello world"
+          }
+        }
+      },
+      "CreateTestResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Item created"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TestItem"
+          }
+        }
+      },
+      "ListTestResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestItem"
+            }
+          }
+        }
+      },
+      "GenericErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "limit must be an integer between 1 and 100"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username or identifier used to authenticate",
+            "example": "test"
+          },
+          "password": {
+            "type": "string",
+            "description": "Plain-text password for demo and test only (use secure auth in prod)",
+            "example": "pass"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Authenticated (demo)"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string",
+                "example": "alice"
+              },
+              "token": {
+                "type": "string",
+                "example": "demo-550e8400-e29b-41d4-a716-446655440000"
+              }
+            }
+          }
+        }
+      },
+      "AuthErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid credentials"
+          }
+        }
+      },
+      "RateLimitExceededResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "example": "Too many requests"
+          },
+          "code": {
+            "type": "string",
+            "example": "RATE_LIMIT_EXCEEDED"
+          },
+          "retry_after_seconds": {
+            "type": "integer",
+            "example": 60
+          }
+        }
+      },
+      "LoginV1Echo": {
+        "type": "object",
+        "description": "Echo of validated + sanitized credentials (demo only). Username has HTML stripped by a strict sanitizer.",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "alice"
+          },
+          "password": {
+            "type": "string",
+            "example": "secret123"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "PaginationLimit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        },
+        "description": "Max items to return (1–200)."
+      },
+      "PaginationCursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Opaque cursor for next page."
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "Unprocessable Entity",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppError"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/auth/customers/adminuser/create": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customers/adminuser/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n  \"providerId\": \"6520d33bef1b2b001ef0a124\",\n  \"email\": \"admin@acmehospital.com\",\n  \"firstName\": \"Alice\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+358401234567\",\n  \"username\": \"alice.smith\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/customers/adminuser/create\", {\n  method: \"POST\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    tenantId: \"6512bd43d9caa6e02c990b0a\",\n    providerId: \"6520d33bef1b2b001ef0a124\",\n    email: \"admin@acmehospital.com\",\n    firstName: \"Alice\",\n    lastName: \"Smith\",\n    phone: \"+358401234567\",\n    username: \"alice.smith\"\n  })\n});\nconst result = await res.json();\nconsole.log(result);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/adminuser/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n    \"providerId\": \"6520d33bef1b2b001ef0a124\",\n    \"email\": \"admin@acmehospital.com\",\n    \"firstName\": \"Alice\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+358401234567\",\n    \"username\": \"alice.smith\"\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())\n"
+          },
+          {
+            "lang": "http",
+            "label": "HTTP (raw)",
+            "source": "POST /api/auth/customers/adminuser/create HTTP/1.1\nHost: http://localhost:8888\nAuthorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\nContent-Type: application/json\n\n{\n  \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n  \"providerId\": \"6520d33bef1b2b001ef0a124\",\n  \"email\": \"admin@acmehospital.com\",\n  \"firstName\": \"Alice\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+358401234567\",\n  \"username\": \"alice.smith\"\n}\n"
+          }
+        ],
+        "summary": "Create the initial administrative user for a customer organization",
+        "description": "Creates the first administrative user linked to both a tenant and a provider. The user's credential is initialized with a strong random password requiring reset on first login.\n",
+        "tags": [
+          "Authentication",
+          "Customer"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerAdminUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer admin user, credentials, and memberships created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCustomerAdminUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAdminUserValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied (insufficient role privileges)"
+          },
+          "409": {
+            "description": "Conflict (duplicate email)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAdminUserConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/auth/customers/login": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customer/login\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"identifier\": \"admin@acmehospital.com\",\n  \"password\": \"secret123\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/customer/login\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\" },\n  body: JSON.stringify({\n    identifier: \"admin@acmehospital.com\",\n    password: \"secret123\"\n  })\n});\n\nconst data = await res.json();\nconsole.log(\"Login result:\", data);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customer/login\"\nheaders = { \"Content-Type\": \"application/json\" }\ndata = {\n    \"identifier\": \"admin@acmehospital.com\",\n    \"password\": \"secret123\"\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(\"Status:\", response.status_code)\nprint(\"Response:\", response.json())\n"
+          }
+        ],
+        "summary": "Authenticate a customer (tenant/provider) user",
+        "description": "Authenticates a user belonging to a tenant or provider organization. Returns a signed Phantom token containing membership-level access context.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLoginErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials (email or password mismatch)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLoginErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account requires password reset or is inactive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLoginErrorResponse"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Account temporarily locked due to repeated failed attempts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLoginErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/auth/customers/user/create": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customers/user/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"tenantId\": \"6520d31aef1b2b001ef0a123\",\n  \"providerId\": \"6520d33bef1b2b001ef0a124\",\n  \"siteId\": \"6520d341ef1b2b001ef0a128\",\n  \"email\": \"nurse@acmehospital.com\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+358401234567\",\n  \"roles\": [\"provider_clinician\"]\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function createCustomerUser() {\n  const res = await fetch(\"http://localhost:8888/api/auth/customers/user/create\", {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      tenantId: \"6520d31aef1b2b001ef0a123\",\n      providerId: \"6520d33bef1b2b001ef0a124\",\n      siteId: \"6520d341ef1b2b001ef0a128\",\n      email: \"doctor@acmehospital.com\",\n      firstName: \"John\",\n      lastName: \"Doe\",\n      roles: [\"provider_clinician\"]\n    })\n  });\n\n  if (!res.ok) {\n    console.error(\"Request failed:\", res.status, await res.text());\n    return;\n  }\n\n  const result = await res.json();\n  console.log(\"User created:\", result);\n}\n\ncreateCustomerUser();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/user/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\npayload = {\n    \"tenantId\": \"6520d31aef1b2b001ef0a123\",\n    \"providerId\": \"6520d33bef1b2b001ef0a124\",\n    \"siteId\": \"6520d341ef1b2b001ef0a128\",\n    \"email\": \"staff@acmehospital.com\",\n    \"firstName\": \"Laura\",\n    \"lastName\": \"Smith\",\n    \"roles\": [\"provider_staff\"]\n}\n\nresponse = requests.post(url, json=payload, headers=headers)\n\nif response.status_code == 201:\n    print(\"User created successfully:\")\n    print(response.json())\nelse:\n    print(f\"Request failed: {response.status_code}\")\n    print(response.text)\n"
+          }
+        ],
+        "summary": "Create a new customer user (tenant/provider/site scoped)",
+        "description": "Creates a new **customer user** within a specific tenant, provider, or site context. This endpoint enforces **hierarchical validation** and **membership-based RBAC**, allowing only authorized customer administrators to create users within their scope.\nThe endpoint automatically: - Validates tenant → provider → site relationships. - Generates a strong temporary password (visible once). - Creates linked `User`, `Credential`, and `Membership` records. - Assigns the specified roles (or defaults to `provider_staff`).\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUserCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer user successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or bad input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateValidationError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied — insufficient roles or invalid scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateForbiddenResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tenant, provider, or site not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateNotFoundResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate user — email already exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateConflictResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error during creation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserCreateServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "examples": {
+          "Successful creation": {
+            "summary": "Tenant admin successfully creates a provider clinician",
+            "value": {
+              "status": true,
+              "message": "Customer user created successfully with credentials and membership",
+              "data": {
+                "user": {
+                  "id": "68ef8a4bf0c45e001fe034a9",
+                  "email": "doctor@acmehospital.com",
+                  "firstName": "Jane",
+                  "lastName": "Doe"
+                },
+                "credential": {
+                  "mustResetAtNextLogin": true
+                },
+                "temporaryPassword": "X@9mAc4k!2Pd",
+                "memberships": [
+                  {
+                    "tenantId": "6520d31aef1b2b001ef0a123",
+                    "providerId": "6520d33bef1b2b001ef0a124",
+                    "siteId": "6520d341ef1b2b001ef0a128",
+                    "roles": [
+                      "provider_clinician"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/customers/user/{userId}/profile": {
+      "patch": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X PATCH \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/profile\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+358401234567\",\n  \"status\": \"active\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function updateUserProfile() {\n  const url = \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/profile\";\n  const res = await fetch(url, {\n    method: \"PATCH\",\n    headers: {\n      \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      firstName: \"Jane\",\n      lastName: \"Doe\",\n      phone: \"+358401234567\",\n      status: \"active\"\n    })\n  });\n\n  if (!res.ok) {\n    console.error(\"Request failed:\", res.status, await res.text());\n    return;\n  }\n\n  const result = await res.json();\n  console.log(\"Profile updated:\", result);\n}\n\nupdateUserProfile();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/profile\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\npayload = {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+358401234567\",\n    \"status\": \"active\"\n}\n\nresponse = requests.patch(url, json=payload, headers=headers)\n\nif response.status_code == 200:\n    print(\"User profile updated successfully:\")\n    print(response.json())\nelse:\n    print(f\"Request failed: {response.status_code}\")\n    print(response.text)\n"
+          }
+        ],
+        "summary": "Update a customer's user profile",
+        "description": "Updates the basic profile fields of a customer user such as first name, last name, phone, and status. Only administrators with appropriate privileges can perform this action.\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique identifier of the target user to update."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUserProfileUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User profile successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserProfileUpdateSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchValidationError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied due to insufficient privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchForbiddenResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchNotFoundResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error while processing the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/customers/user/{userId}/membership": {
+      "patch": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X PATCH \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/membership\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"membershipId\": \"6541aab3b02ccf001ff1a3e9\",\n  \"roles\": [\"provider_clinician\", \"provider_viewer\"]\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function updateMembershipRoles() {\n  const url = \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/membership\";\n  const res = await fetch(url, {\n    method: \"PATCH\",\n    headers: {\n      \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      membershipId: \"6541aab3b02ccf001ff1a3e9\",\n      roles: [\"provider_clinician\", \"provider_viewer\"]\n    })\n  });\n\n  if (!res.ok) {\n    console.error(\"Request failed:\", res.status, await res.text());\n    return;\n  }\n\n  const result = await res.json();\n  console.log(\"Membership updated:\", result);\n}\n\nupdateMembershipRoles();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/user/6531da1f12a3bc002ff034e9/membership\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\npayload = {\n    \"membershipId\": \"6541aab3b02ccf001ff1a3e9\",\n    \"roles\": [\"provider_clinician\", \"provider_viewer\"]\n}\n\nresponse = requests.patch(url, json=payload, headers=headers)\n\nif response.status_code == 200:\n    print(\"Membership roles updated successfully:\")\n    print(response.json())\nelse:\n    print(f\"Request failed: {response.status_code}\")\n    print(response.text)\n"
+          }
+        ],
+        "summary": "Update a customer's user membership roles",
+        "description": "Allows administrators to update the roles associated with a user's membership record. The request must include a valid `membershipId` and a list of new role keys. Privilege enforcement ensures scope integrity and prevents unauthorized role escalation.\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique identifier of the user whose membership is being updated."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUserMembershipUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Membership roles updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserMembershipUpdateSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing membership information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchValidationError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied due to insufficient privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchForbiddenResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target membership not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchNotFoundResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error while processing the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUserPatchServerErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/decode": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/auth/decode\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/decode\", {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\nconsole.log(await res.json());\n"
+          }
+        ],
+        "summary": "Verify Phantom authentication middleware",
+        "description": "Returns decoded authentication data from the Phantom Token middleware. This route is mainly intended for **development and testing** to ensure that authentication is functioning correctly.\nIn **development**, it returns detailed token and user context. In **production**, only limited safe identity info is shown.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authentication verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AuthDecodeSuccessResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AuthDecodeProductionResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Phantom token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthDecodeErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Endpoint disabled in production (if restricted)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthDecodeErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthDecodeErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/platform/login": {
+      "post": {
+        "summary": "Authenticate Truehear platform staff",
+        "description": "Authenticates **Truehear Cloud system-level users** using a username or email and password. Returns a signed JWT and phantom token along with user details and system roles.\n⚠️ This endpoint is **only for internal Truehear platform accounts**, not customer tenants or providers.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformLoginRequest"
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/platform/login\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"identifier\": \"admin@truehear.com\",\n  \"password\": \"SuperSecret123\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/platform/login\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\" },\n  body: JSON.stringify({\n    identifier: \"admin@truehear.com\",\n    password: \"SuperSecret123\"\n  })\n});\nconsole.log(await res.json());\n"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing or invalid fields)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginUnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No system-level access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginForbiddenResponse"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Account temporarily locked due to repeated failures",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginLockedResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformLoginServerErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "examples": {
+          "Successful login": {
+            "summary": "Platform admin logs in successfully",
+            "value": {
+              "status": true,
+              "message": "Login successful",
+              "data": {
+                "tokenType": "phantom",
+                "phantomToken": "phtm_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "expiresAt": {
+                  "utc": "2025-10-12T11:45:00.000Z",
+                  "local": "12 Oct 2025, 14:45"
+                },
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "user": {
+                  "id": "652a8a4bf0c45e001fe034a9",
+                  "username": "admin",
+                  "email": "admin@truehear.com",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "systemRoles": [
+                    "system_admin"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/create": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/sites/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n  \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n  \"name\": \"Downtown Clinic\",\n  \"telecom\": { \"email\": \"contact@downtownclinic.fi\" },\n  \"addresses\": [\n    { \"type\": \"operational\", \"city\": \"Helsinki\", \"country\": \"FI\" }\n  ],\n  \"tags\": [\n    { \"key\": \"floor\", \"value\": \"2\" },\n    { \"key\": \"department\", \"value\": \"Outpatient\" }\n  ],\n  \"timezone\": \"Europe/Helsinki\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/sites/create\", {\n  method: \"POST\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    tenantId: \"6512bd43d9caa6e02c990b0a\",\n    providerId: \"652a8a4bf0c45e001fe034a9\",\n    name: \"Downtown Clinic\",\n    telecom: { email: \"contact@downtownclinic.fi\" },\n    addresses: [\n      { type: \"operational\", city: \"Helsinki\", country: \"FI\" }\n    ],\n    tags: [\n      { key: \"floor\", value: \"2\" },\n      { key: \"department\", value: \"Outpatient\" }\n    ],\n    timezone: \"Europe/Helsinki\"\n  })\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/sites/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n    \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n    \"name\": \"Downtown Clinic\",\n    \"telecom\": {\"email\": \"contact@downtownclinic.fi\"},\n    \"addresses\": [\n        {\"type\": \"operational\", \"city\": \"Helsinki\", \"country\": \"FI\"}\n    ],\n    \"tags\": [\n        {\"key\": \"floor\", \"value\": \"2\"},\n        {\"key\": \"department\", \"value\": \"Outpatient\"}\n    ],\n    \"timezone\": \"Europe/Helsinki\"\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Create a new site under a provider",
+        "description": "Creates a new site record within a provider context. The `siteCode` is automatically generated and unique per provider.\n",
+        "tags": [
+          "Site"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Site created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSiteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied (insufficient privileges)"
+          },
+          "409": {
+            "description": "Duplicate siteCode (conflict)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/providers/create": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/providers/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n  \"name\": \"Acme Hospital\",\n  \"type\": {\n    \"system\": \"https://truehear.fi/fhir/CodeSystem/provider-type\",\n    \"code\": \"hospital\"\n  },\n  \"telecom\": { \"email\": \"info@acmehospital.com\" },\n  \"addresses\": [\n    { \"city\": \"Helsinki\", \"country\": \"FI\" }\n  ]\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/providers/create\", {\n  method: \"POST\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    tenantId: \"6512bd43d9caa6e02c990b0a\",\n    name: \"Acme Hospital\",\n    type: {\n      system: \"https://truehear.fi/fhir/CodeSystem/provider-type\",\n      code: \"hospital\"\n    },\n    telecom: { email: \"info@acmehospital.com\" },\n    addresses: [\n      { city: \"Helsinki\", country: \"FI\" }\n    ]\n  })\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/providers/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n    \"name\": \"Acme Hospital\",\n    \"type\": {\n        \"system\": \"https://truehear.fi/fhir/CodeSystem/provider-type\",\n        \"code\": \"hospital\"\n    },\n    \"telecom\": {\"email\": \"info@acmehospital.com\"},\n    \"addresses\": [{\"city\": \"Helsinki\", \"country\": \"FI\"}]\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Create a new provider",
+        "description": "Creates a new provider entity within a tenant. The `providerCode` is automatically generated and unique per tenant.\n",
+        "tags": [
+          "Provider"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Provider created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProviderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied (insufficient role privileges)"
+          },
+          "409": {
+            "description": "Duplicate providerCode (conflict)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/providers/{providerId}": {
+      "patch": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X PATCH \"http://localhost:8888/api/providers/652f1d22c7eebc001fc05a10\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"name\": \"Acme Hospital - Updated\",\n  \"status\": \"active\",\n  \"telecom\": {\n    \"email\": \"admin@acmehospital.com\",\n    \"phone\": \"+358401234567\"\n  },\n  \"addresses\": [\n    { \"city\": \"Helsinki\", \"country\": \"FI\" }\n  ]\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const providerId = \"652f1d22c7eebc001fc05a10\";\nconst res = await fetch(`http://localhost:8888/api/providers/${providerId}`, {\n  method: \"PATCH\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    name: \"Acme Hospital - Updated\",\n    status: \"active\",\n    telecom: {\n      email: \"admin@acmehospital.com\",\n      phone: \"+358401234567\"\n    },\n    addresses: [\n      { city: \"Helsinki\", country: \"FI\" }\n    ]\n  })\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nprovider_id = \"652f1d22c7eebc001fc05a10\"\nurl = f\"http://localhost:8888/api/providers/{provider_id}\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"name\": \"Acme Hospital - Updated\",\n    \"status\": \"active\",\n    \"telecom\": {\n        \"email\": \"admin@acmehospital.com\",\n        \"phone\": \"+358401234567\"\n    },\n    \"addresses\": [{\"city\": \"Helsinki\", \"country\": \"FI\"}]\n}\n\nresponse = requests.patch(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Update an existing provider",
+        "description": "Updates an existing provider (hospital, clinic, etc.) with partial or full data. Only the fields provided in the request body will be updated. Immutable fields (`_id`, `providerCode`, `tenantId`, `createdAt`) are automatically ignored.\n",
+        "tags": [
+          "Provider"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "providerId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "MongoDB ObjectId of the provider to update.",
+            "example": "652f1d22c7eebc001fc05a10"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Provider updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateProviderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateProviderErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid Phantom token"
+          },
+          "403": {
+            "description": "Forbidden - insufficient role privileges"
+          },
+          "404": {
+            "description": "Provider not found or deleted"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/providers/652f1d22c7eebc001fc05a10\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const providerId = \"652f1d22c7eebc001fc05a10\";\nconst res = await fetch(`http://localhost:8888/api/providers/${providerId}`, {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  }\n});\n\nconst data = await res.json();\nconsole.log(data);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nprovider_id = \"652f1d22c7eebc001fc05a10\"\nurl = f\"http://localhost:8888/api/providers/{provider_id}\"\n\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\n\nresponse = requests.get(url, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Retrieve a specific provider by ID",
+        "description": "Returns a single provider entity identified by its unique `providerId`. Requires a valid Phantom Token and platform-level authorization.\n",
+        "tags": [
+          "Provider"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "providerId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique ID of the provider to retrieve.",
+            "example": "652f1d22c7eebc001fc05a10"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProviderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid provider ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderUnauthorizedResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — Insufficient role privileges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "status": false,
+                    "message": "Access denied — requires one of: root, system_admin"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provider not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderNotFoundResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "status": false,
+                    "message": "Failed to fetch provider"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/providers/search": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/providers/search?tenantId=6520d31aef1b2b001ef0a123&page=1&limit=5\" \\\n  -H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const query = new URLSearchParams({\n  tenantId: \"6520d31aef1b2b001ef0a123\",\n  page: \"1\",\n  limit: \"5\"\n});\n\nconst res = await fetch(`http://localhost:8888/api/providers/search?${query.toString()}`, {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\n\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/providers/search\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n}\nparams = {\n    \"tenantId\": \"6520d31aef1b2b001ef0a123\",\n    \"page\": 1,\n    \"limit\": 5\n}\n\nresponse = requests.get(url, headers=headers, params=params)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Search or list providers",
+        "description": "Retrieve a list of providers with optional filters. Supports searching by `tenantId`, `providerCode`, or partial `name`. If no filters are provided, returns the 10 most recently updated providers.\n",
+        "tags": [
+          "Provider"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tenantId",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Filter providers by tenant ID.",
+            "example": "6520d31aef1b2b001ef0a123"
+          },
+          {
+            "in": "query",
+            "name": "providerCode",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Filter by exact provider code (case-insensitive).",
+            "example": "PRV-00012"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Partial name match for provider name.",
+            "example": "hospital"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false,
+            "description": "Page number for pagination."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false,
+            "description": "Number of results per page (max 100)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Providers retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter or bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderSearchErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token"
+          },
+          "403": {
+            "description": "Forbidden - insufficient privileges"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/tenant/create": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/tenant/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"name\": \"Acme Corporation\",\n  \"status\": \"active\",\n  \"telecom\": { \"email\": \"info@acme.com\" },\n  \"addresses\": [\n    { \"line1\": \"123 Main St\", \"postalCode\": \"90210\" }\n  ]\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/tenant/create\", {\n  method: \"POST\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    name: \"Acme Corporation\",\n    status: \"active\",\n    telecom: { email: \"info@acme.com\" },\n    addresses: [\n      { line1: \"123 Main St\", postalCode: \"90210\" }\n    ]\n  })\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/tenant/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"name\": \"Acme Corporation\",\n    \"status\": \"active\",\n    \"telecom\": {\"email\": \"info@acme.com\"},\n    \"addresses\": [{\"line1\": \"123 Main St\", \"postalCode\": \"90210\"}]\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Create a new tenant",
+        "description": "Creates a new tenant entity. The `tenantCode` is automatically generated by the server and cannot be provided by clients.\n",
+        "tags": [
+          "Tenant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTenantRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTenantResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate tenantCode (conflict)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/test": {
+      "get": {
+        "summary": "List demo items",
+        "description": "Retrieve all stored demo items. Optional query parameter `limit` restricts the number returned.\n",
+        "tags": [
+          "Test"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "required": false,
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of demo items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListTestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad query)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new demo item",
+        "description": "Validate input and return the created item.\n",
+        "tags": [
+          "Test"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test/login": {
+      "post": {
+        "summary": "Demo login endpoint (rate-limited)",
+        "description": "Lightweight demo endpoint used to test rate-limiting behavior.\nThis endpoint intentionally uses a very small quota in examples (2 attempts / minute).\nReplace with your real authentication logic in production.\n",
+        "tags": [
+          "Test"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated (demo)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing/invalid fields)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until retry is allowed",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitExceededResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test/loginv1": {
+      "post": {
+        "summary": "Demo login v1 (rate-limited, username sanitized)",
+        "description": "Validates required `username` and `password`, then applies a **strict HTML sanitizer** to `username`\n(all tags/attributes removed) before the handler runs. This endpoint is for demo/testing only.\n",
+        "tags": [
+          "Test"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "examples": {
+                "valid": {
+                  "summary": "Valid payload (username will be sanitized)",
+                  "value": {
+                    "username": "<b>alice</b>",
+                    "password": "secret123"
+                  }
+                },
+                "missingUsername": {
+                  "summary": "Missing username",
+                  "value": {
+                    "password": "secret123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Echo of sanitized credentials (demo)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginV1Echo"
+                },
+                "examples": {
+                  "sanitized": {
+                    "summary": "Username sanitized (HTML removed)",
+                    "value": {
+                      "username": "alice",
+                      "password": "secret123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing/invalid fields)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until retry is allowed",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitExceededResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
