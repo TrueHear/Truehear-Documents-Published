@@ -1649,6 +1649,196 @@
           }
         }
       },
+      "UpdateSiteRequest": {
+        "type": "object",
+        "description": "Partial update payload for modifying an existing site record. Supports PATCH semantics — only provided fields are updated.\n",
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "description": "Tenant that owns this site (required for context validation).",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Provider under which this site exists.",
+            "example": "652a8a4bf0c45e001fe034a9"
+          },
+          "name": {
+            "type": "string",
+            "description": "Updated display name of the site.",
+            "example": "Downtown Clinic (Updated)"
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Updated list of site aliases.",
+            "items": {
+              "type": "string",
+              "example": "Central Medical Hub"
+            }
+          },
+          "telecom": {
+            "type": "object",
+            "description": "Updated telecom/contact information.",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "new.contact@downtownclinic.fi"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+358409998887"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://updated.downtownclinic.fi"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Updated address list for the site.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "operational",
+                    "billing",
+                    "shipping",
+                    "other"
+                  ],
+                  "example": "operational"
+                },
+                "city": {
+                  "type": "string",
+                  "example": "Espoo"
+                },
+                "region": {
+                  "type": "string",
+                  "example": "Uusimaa"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "02100"
+                },
+                "country": {
+                  "type": "string",
+                  "example": "FI"
+                },
+                "geo": {
+                  "type": "object",
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "example": 60.18
+                    },
+                    "lng": {
+                      "type": "number",
+                      "example": 24.65
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Updated timezone of the site.",
+            "example": "Europe/Helsinki"
+          },
+          "tags": {
+            "type": "array",
+            "description": "Updated metadata tags for the site.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "example": "department"
+                },
+                "value": {
+                  "type": "string",
+                  "example": "Radiology"
+                }
+              }
+            }
+          },
+          "notes": {
+            "type": "array",
+            "description": "Updated list of internal notes or comments.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "authorId": {
+                  "type": "string",
+                  "example": "user_789"
+                },
+                "body": {
+                  "type": "string",
+                  "example": "Updated emergency contact details."
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "inactive",
+              "suspended",
+              "closed"
+            ],
+            "description": "Updated operational status.",
+            "example": "active"
+          }
+        }
+      },
+      "UpdateSiteResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Site updated successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Site"
+          }
+        }
+      },
+      "SiteNotFoundErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Site not found or deleted"
+          }
+        }
+      },
+      "SiteContextErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Site does not belong to specified provider"
+          }
+        }
+      },
       "Provider": {
         "type": "object",
         "description": "Updated provider entity.",
@@ -3517,6 +3707,221 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SiteConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/sites/{siteId}": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5?tenantId=6512bd43d9caa6e02c990b0a&providerId=652a8a4bf0c45e001fe034a9\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5?tenantId=6512bd43d9caa6e02c990b0a&providerId=652a8a4bf0c45e001fe034a9\", {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5\"\nparams = {\n    \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n    \"providerId\": \"652a8a4bf0c45e001fe034a9\"\n}\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n}\n\nresponse = requests.get(url, headers=headers, params=params)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Retrieve a single site by its ID",
+        "description": "Fetches a single site document by its unique identifier (`siteId`), ensuring tenant → provider → site context integrity before returning data.\n",
+        "tags": [
+          "Site"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "siteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique identifier of the site to retrieve.",
+            "example": "6530b12a5a1dce001fd032a5"
+          },
+          {
+            "in": "query",
+            "name": "tenantId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The tenant to which the site belongs.",
+            "example": "6512bd43d9caa6e02c990b0a"
+          },
+          {
+            "in": "query",
+            "name": "providerId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The provider under which the site operates.",
+            "example": "652a8a4bf0c45e001fe034a9"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Site retrieved successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Site"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid identifiers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied — insufficient privileges"
+          },
+          "404": {
+            "description": "Site not found or deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteNotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        }
+      },
+      "patch": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X PATCH \"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n  \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n  \"name\": \"Downtown Clinic (Updated)\",\n  \"telecom\": {\n    \"email\": \"updated.contact@downtownclinic.fi\",\n    \"phone\": \"+358401234567\"\n  },\n  \"addresses\": [\n    { \"type\": \"operational\", \"city\": \"Espoo\", \"country\": \"FI\" }\n  ],\n  \"tags\": [\n    { \"key\": \"floor\", \"value\": \"3\" },\n    { \"key\": \"department\", \"value\": \"Radiology\" }\n  ],\n  \"timezone\": \"Europe/Helsinki\",\n  \"status\": \"active\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5\", {\n  method: \"PATCH\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    tenantId: \"6512bd43d9caa6e02c990b0a\",\n    providerId: \"652a8a4bf0c45e001fe034a9\",\n    name: \"Downtown Clinic (Updated)\",\n    telecom: {\n      email: \"updated.contact@downtownclinic.fi\",\n      phone: \"+358401234567\"\n    },\n    addresses: [\n      { type: \"operational\", city: \"Espoo\", country: \"FI\" }\n    ],\n    tags: [\n      { key: \"floor\", value: \"3\" },\n      { key: \"department\", value: \"Radiology\" }\n    ],\n    timezone: \"Europe/Helsinki\",\n    status: \"active\"\n  })\n});\n\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/sites/6530b12a5a1dce001fd032a5\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"tenantId\": \"6512bd43d9caa6e02c990b0a\",\n    \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n    \"name\": \"Downtown Clinic (Updated)\",\n    \"telecom\": {\n        \"email\": \"updated.contact@downtownclinic.fi\",\n        \"phone\": \"+358401234567\"\n    },\n    \"addresses\": [\n        {\"type\": \"operational\", \"city\": \"Espoo\", \"country\": \"FI\"}\n    ],\n    \"tags\": [\n        {\"key\": \"floor\", \"value\": \"3\"},\n        {\"key\": \"department\", \"value\": \"Radiology\"}\n    ],\n    \"timezone\": \"Europe/Helsinki\",\n    \"status\": \"active\"\n}\n\nresponse = requests.patch(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Update an existing site",
+        "description": "Updates an existing site record within a validated tenant → provider → site context. Partial updates are supported — only supplied fields are modified.\n",
+        "tags": [
+          "Site"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "siteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The unique identifier of the site to update."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Site updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSiteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied (insufficient privileges)"
+          },
+          "404": {
+            "description": "Site not found or invalid context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SiteNotFoundErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SiteContextErrorResponse"
+                    }
+                  ]
                 }
               }
             }
