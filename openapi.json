@@ -322,25 +322,26 @@
       },
       "Membership": {
         "type": "object",
-        "description": "Represents a user's role assignment within a tenant or provider scope.",
+        "description": "Representation of a user's membership within an organizational hierarchy.",
         "properties": {
           "tenantId": {
             "type": "string",
-            "description": "Identifier of the tenant organization.",
-            "example": "6512bd43d9caa6e02c990b0a"
+            "description": "Tenant that owns this membership. Must always be defined.",
+            "example": "6520d31aef1b2b001ef0a222"
           },
           "providerId": {
             "type": "string",
             "nullable": true,
-            "description": "Identifier of the provider (if applicable).",
-            "example": "6520d33bef1b2b001ef0a124"
+            "description": "Optional provider context under the tenant.",
+            "example": "652a8a4bf0c45e001fe034a9"
           },
           "roles": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "example": "provider_admin"
             },
-            "description": "Roles granted to this user in the given context.",
+            "description": "List of role identifiers granted to the user for this scope.",
             "example": [
               "provider_admin"
             ]
@@ -348,9 +349,10 @@
           "permissions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "example": "manage_providers"
             },
-            "description": "Optional list of directly granted permissions.",
+            "description": "Optional explicit permissions granted.",
             "example": [
               "patient.read",
               "appointment.write"
@@ -359,11 +361,58 @@
           "status": {
             "type": "string",
             "enum": [
+              "invited",
               "active",
+              "paused",
               "suspended",
-              "revoked"
+              "terminated"
             ],
-            "example": "active"
+            "example": "active",
+            "description": "Lifecycle state of the membership."
+          },
+          "id": {
+            "type": "string",
+            "description": "Auto-generated unique ID (mirrors MongoDB `_id`).",
+            "example": "6530d31aef1b2b001ef0aabc"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Reference to the user who is a member of this organization scope.",
+            "example": "6520d31aef1b2b001ef0a111"
+          },
+          "siteId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional site context under the provider.",
+            "example": "6531b7c0ea6a92001f2349ab"
+          },
+          "deniedPermissions": {
+            "type": "array",
+            "description": "Optional explicit permissions denied.",
+            "items": {
+              "type": "string",
+              "example": "delete_tenant"
+            }
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "User ID or system reference who created the membership.",
+            "example": "system"
+          },
+          "updatedBy": {
+            "type": "string",
+            "description": "Last user ID who modified the membership.",
+            "example": "6520d31aef1b2b001ef0a333"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-14T08:45:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-14T09:10:00.000Z"
           }
         }
       },
@@ -1836,6 +1885,148 @@
           "message": {
             "type": "string",
             "example": "Site does not belong to specified provider"
+          }
+        }
+      },
+      "CreateMembershipRequest": {
+        "type": "object",
+        "required": [
+          "userId",
+          "tenantId",
+          "roles"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "ID of the user to be added as a member.",
+            "example": "6520d31aef1b2b001ef0a111"
+          },
+          "tenantId": {
+            "type": "string",
+            "description": "Tenant under which this membership is created.",
+            "example": "6520d31aef1b2b001ef0a222"
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional provider context (if membership applies to a provider).",
+            "example": "652a8a4bf0c45e001fe034a9"
+          },
+          "siteId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional site context (if membership applies to a site).",
+            "example": null
+          },
+          "roles": {
+            "type": "array",
+            "description": "Array of role identifiers to assign to the user.",
+            "items": {
+              "type": "string",
+              "example": "tenant_admin"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Optional list of additional permissions.",
+            "items": {
+              "type": "string",
+              "example": "read_reports"
+            }
+          },
+          "deniedPermissions": {
+            "type": "array",
+            "description": "Optional list of denied permissions.",
+            "items": {
+              "type": "string",
+              "example": "delete_tenant"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "active",
+              "paused",
+              "suspended",
+              "terminated"
+            ],
+            "default": "active",
+            "example": "active"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "ID of the creator (system or user ID).",
+            "example": "system"
+          }
+        }
+      },
+      "CreateMembershipResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Membership created successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Membership"
+          }
+        }
+      },
+      "MembershipValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "tenantId is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "tenantId"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "MembershipConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Membership already exists for this scope"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "userId": "6520d31aef1b2b001ef0a111",
+              "tenantId": "6520d31aef1b2b001ef0a222"
+            }
           }
         }
       },
@@ -3930,6 +4121,88 @@
             "description": "Unexpected server error"
           }
         }
+      }
+    },
+    "/api/memberships/create": {
+      "post": {
+        "summary": "Create a new membership for a user in a tenant/provider/site scope",
+        "description": "Creates a new membership linking a user to an organizational scope. The combination of `tenantId`, `providerId`, and `siteId` must be unique per user. If a membership already exists for the same scope, the operation fails with a 409 Conflict.\n",
+        "tags": [
+          "Membership"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMembershipRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Membership created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMembershipResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (bad input)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "description": "Access denied (insufficient privileges)"
+          },
+          "409": {
+            "description": "Duplicate membership (conflict for same scope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/memberships/create\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"userId\": \"6520d31aef1b2b001ef0a111\",\n  \"tenantId\": \"6520d31aef1b2b001ef0a222\",\n  \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n  \"siteId\": null,\n  \"roles\": [\"provider_admin\"],\n  \"permissions\": [\"manage_providers\", \"view_reports\"],\n  \"deniedPermissions\": [\"delete_tenant\"],\n  \"status\": \"active\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/memberships/create\", {\n  method: \"POST\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    userId: \"6520d31aef1b2b001ef0a111\",\n    tenantId: \"6520d31aef1b2b001ef0a222\",\n    providerId: \"652a8a4bf0c45e001fe034a9\",\n    siteId: null,\n    roles: [\"provider_admin\"],\n    permissions: [\"manage_providers\", \"view_reports\"],\n    deniedPermissions: [\"delete_tenant\"],\n    status: \"active\"\n  })\n});\nconsole.log(await res.json());\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/memberships/create\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\ndata = {\n    \"userId\": \"6520d31aef1b2b001ef0a111\",\n    \"tenantId\": \"6520d31aef1b2b001ef0a222\",\n    \"providerId\": \"652a8a4bf0c45e001fe034a9\",\n    \"siteId\": None,\n    \"roles\": [\"provider_admin\"],\n    \"permissions\": [\"manage_providers\", \"view_reports\"],\n    \"deniedPermissions\": [\"delete_tenant\"],\n    \"status\": \"active\"\n}\n\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())\n"
+          }
+        ]
       }
     },
     "/api/providers/create": {
