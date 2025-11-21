@@ -1888,6 +1888,71 @@
           }
         }
       },
+      "HealthStatus": {
+        "type": "object",
+        "description": "Operational health response for the Professional Platform Backend.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "Indicates if the service is running normally.",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable service status message.",
+            "example": "Professional Platform Backend Running"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Name of the running service.",
+                "example": "Professional Platform Backend"
+              },
+              "version": {
+                "type": "string",
+                "description": "Current service version.",
+                "example": "1.0.0"
+              },
+              "uptimeSeconds": {
+                "type": "number",
+                "description": "Number of seconds the process has been running.",
+                "example": 1822.44
+              },
+              "environment": {
+                "type": "string",
+                "description": "Current environment (NODE_ENV).",
+                "example": "production"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO timestamp of when the response was generated.",
+                "example": "2025-02-11T03:21:44.511Z"
+              }
+            }
+          }
+        }
+      },
+      "HealthErrorResponse": {
+        "type": "object",
+        "description": "Generic failure response for health endpoint issues.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Health check failed"
+          },
+          "error": {
+            "type": "string",
+            "example": "Internal Server Error"
+          }
+        }
+      },
       "CreateMembershipRequest": {
         "type": "object",
         "required": [
@@ -4119,6 +4184,54 @@
           },
           "500": {
             "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/health\" \\\n-H \"Content-Type: application/json\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/health\", {\n  method: \"GET\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  }\n});\n\nconst json = await res.json();\nconsole.log(json);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/health\"\nheaders = {\n    \"Content-Type\": \"application/json\"\n}\n\nresponse = requests.get(url, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Returns system health and metadata",
+        "description": "Provides a basic operational heartbeat including uptime, environment, and running version of the Professional Platform Backend. This endpoint may be used for logging, monitoring dashboards, CI pipelines, or load balancer health checks.\n",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Service is running normally.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthErrorResponse"
+                }
+              }
+            }
           }
         }
       }
