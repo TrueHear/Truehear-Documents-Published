@@ -300,6 +300,114 @@
           }
         }
       },
+      "PasswordChangeRequest": {
+        "type": "object",
+        "required": [
+          "oldPassword",
+          "newPassword"
+        ],
+        "properties": {
+          "oldPassword": {
+            "type": "string",
+            "description": "The user's current password used to verify identity.",
+            "example": "OldPassword123!"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "The new password the user wishes to set.",
+            "example": "MyNewSecurePassword456!"
+          }
+        }
+      },
+      "PasswordChangeSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Password changed successfully."
+          }
+        }
+      },
+      "PasswordChangeValidationError": {
+        "type": "object",
+        "description": "Input validation failure.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "oldPassword is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "oldPassword"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PasswordChangeUnauthorizedError": {
+        "type": "object",
+        "description": "oldPassword did not match.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Old password is incorrect"
+          }
+        }
+      },
+      "PasswordChangeNotFoundError": {
+        "type": "object",
+        "description": "No credential record found for the authenticated user.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Credentials not found for this account"
+          }
+        }
+      },
+      "PasswordChangeServerError": {
+        "type": "object",
+        "description": "Unexpected server failure.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to change password"
+          }
+        }
+      },
       "CustomerLoginRequest": {
         "type": "object",
         "required": [
@@ -514,6 +622,156 @@
             "nullable": true,
             "description": "Optional machine-readable error code.",
             "example": "PASSWORD_RESET_REQUIRED"
+          }
+        }
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "required": [
+          "identifier"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Email or username associated with the user account.",
+            "example": "doctor@acmehospital.com"
+          }
+        }
+      },
+      "PasswordResetRequestResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "If an account exists, a password reset code has been sent."
+          }
+        }
+      },
+      "PasswordResetConfirmRequest": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "otp",
+          "newPassword"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Email or username for the account resetting the password.",
+            "example": "doctor@acmehospital.com"
+          },
+          "otp": {
+            "type": "string",
+            "description": "The 6-digit one-time password sent to the user.",
+            "example": "482913"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "The new password the user wishes to set.",
+            "example": "MyNewSecurePassword123!"
+          }
+        }
+      },
+      "PasswordResetSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Password has been reset successfully."
+          }
+        }
+      },
+      "PasswordResetValidationError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "identifier is required"
+                },
+                "field": {
+                  "type": "string",
+                  "example": "identifier"
+                },
+                "in": {
+                  "type": "string",
+                  "example": "body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PasswordResetOtpError": {
+        "type": "object",
+        "description": "OTP validation or expiration error.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid OTP"
+          }
+        }
+      },
+      "PasswordResetMaxAttemptsError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Maximum OTP attempts exceeded"
+          }
+        }
+      },
+      "PasswordResetNotFoundError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid OTP or user not found"
+          }
+        }
+      },
+      "PasswordResetServerError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Password reset failed"
           }
         }
       },
@@ -3236,6 +3494,16 @@
           "type": "string"
         },
         "description": "Opaque cursor for next page."
+      },
+      "XTrustedDeviceHeader": {
+        "in": "header",
+        "name": "X-Trusted-Device",
+        "required": false,
+        "description": "Optional trusted device token used for Swagger / API testing ONLY. In production this value is normally delivered via the 'trusted_device' cookie.\n",
+        "schema": {
+          "type": "string",
+          "example": "a6aefb68a468361b3703d754e95750af7b89276845a1fe1c926901f8563c04fb"
+        }
       }
     },
     "responses": {
@@ -3405,6 +3673,99 @@
         }
       }
     },
+    "/api/auth/customers/password/change": {
+      "post": {
+        "summary": "Change password for an authenticated customer user",
+        "description": "Allows an already authenticated user to **securely update their password**.\nThis endpoint differs from the password reset flow: - It does **not** require an OTP. - It requires the **oldPassword** for identity verification. - It applies only to users who are already logged in via Phantom token.\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password successfully changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input validation failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Incorrect old password.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeUnauthorizedError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Credential record not found for authenticated user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeNotFoundError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server-side error during password update.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChangeServerError"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customers/password/change\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"oldPassword\": \"OldPassword123!\",\n  \"newPassword\": \"MyNewSecurePassword456!\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function changePassword() {\n  const res = await fetch(\"http://localhost:8888/api/auth/customers/password/change\", {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      oldPassword: \"OldPassword123!\",\n      newPassword: \"MyNewSecurePassword456!\"\n    })\n  });\n\n  const result = await res.json();\n  console.log(\"Password change response:\", result);\n}\n\nchangePassword();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/password/change\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\",\n    \"Content-Type\": \"application/json\"\n}\npayload = {\n    \"oldPassword\": \"OldPassword123!\",\n    \"newPassword\": \"MyNewSecurePassword456!\"\n}\n\nresponse = requests.post(url, json=payload, headers=headers)\n\nprint(\"Status:\", response.status_code)\nprint(\"Body:\", response.json())\n"
+          }
+        ]
+      }
+    },
     "/api/auth/customers/login": {
       "post": {
         "x-codeSamples": [
@@ -3425,9 +3786,14 @@
           }
         ],
         "summary": "Authenticate a customer (tenant/provider) user",
-        "description": "Authenticates a user belonging to a tenant or provider organization. Returns a signed Phantom token containing membership-level access context.\n",
+        "description": "Authenticates a user belonging to a tenant or provider organization. Returns a signed Phantom token containing membership-level access context.\n**Trusted Device Flow:** - In production, the trusted device token is provided via the\n  `trusted_device` cookie.\n- For Swagger testing, you may pass the trusted device token via\n  the `X-Trusted-Device` header.\n",
         "tags": [
           "Authentication"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/XTrustedDeviceHeader"
+          }
         ],
         "requestBody": {
           "required": true,
@@ -3492,6 +3858,190 @@
           },
           "500": {
             "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/auth/customers/password/reset/request": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customers/password/reset/request\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"identifier\": \"doctor@acmehospital.com\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function requestPasswordReset() {\n  const res = await fetch(\"http://localhost:8888/api/auth/customers/password/reset/request\", {\n    method: \"POST\",\n    headers: {\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      identifier: \"doctor@acmehospital.com\"\n    })\n  });\n\n  const result = await res.json();\n  console.log(\"Reset request response:\", result);\n}\n\nrequestPasswordReset();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/password/reset/request\"\n\npayload = {\n    \"identifier\": \"doctor@acmehospital.com\"\n}\n\nresponse = requests.post(url, json=payload)\n\nprint(\"Response status:\", response.status_code)\nprint(\"Response body:\", response.json())\n"
+          }
+        ],
+        "summary": "Request a password reset (OTP will be sent)",
+        "description": "Initiates a password reset by generating a **password_reset OTP**.\nFor security reasons, this endpoint always returns `200 OK` even if the identifier does not match any account. This prevents attacker-driven email/username enumeration.\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP issued (or simulated issuance for non-existent accounts).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetRequestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetValidationError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetServerError"
+                }
+              }
+            }
+          }
+        },
+        "examples": {
+          "Valid request": {
+            "summary": "A user initiates a password reset",
+            "value": {
+              "identifier": "doctor@acmehospital.com"
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/customers/password/reset/confirm": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/customers/password/reset/confirm\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"identifier\": \"doctor@acmehospital.com\",\n  \"otp\": \"482913\",\n  \"newPassword\": \"MyNewSecurePassword123!\"\n}'\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch API)",
+            "source": "import fetch from \"node-fetch\";\n\nasync function confirmPasswordReset() {\n  const res = await fetch(\"http://localhost:8888/api/auth/customers/password/reset/confirm\", {\n    method: \"POST\",\n    headers: {\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({\n      identifier: \"doctor@acmehospital.com\",\n      otp: \"482913\",\n      newPassword: \"MyNewSecurePassword123!\"\n    })\n  });\n\n  const result = await res.json();\n  console.log(\"Reset confirmation response:\", result);\n}\n\nconfirmPasswordReset();\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/customers/password/reset/confirm\"\n\npayload = {\n    \"identifier\": \"doctor@acmehospital.com\",\n    \"otp\": \"482913\",\n    \"newPassword\": \"MyNewSecurePassword123!\"\n}\n\nresponse = requests.post(url, json=payload)\n\nprint(\"Response status:\", response.status_code)\nprint(\"Response body:\", response.json())\n"
+          }
+        ],
+        "summary": "Confirm password reset using OTP",
+        "description": "Validates the submitted OTP and updates the user's password.\nThis endpoint: - Verifies OTP existence, expiration, and attempt limits - Consumes OTP (one-time use) - Updates user credential securely (bcrypt + pepper) - Resets failed login attempts & lockout timers\n",
+        "tags": [
+          "Authentication (Customer)"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, expired, or missing OTP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetOtpError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "OTP mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetOtpError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or credential not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetNotFoundError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "OTP attempt limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetMaxAttemptsError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure during reset.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetServerError"
+                }
+              }
+            }
+          }
+        },
+        "examples": {
+          "Successful reset": {
+            "summary": "User submits valid OTP and new strong password",
+            "value": {
+              "identifier": "doctor@acmehospital.com",
+              "otp": "482913",
+              "newPassword": "MyNewSecurePassword123!"
+            }
           }
         }
       }
