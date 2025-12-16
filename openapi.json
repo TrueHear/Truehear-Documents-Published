@@ -1535,6 +1535,119 @@
           }
         }
       },
+      "MeSuccessResponse": {
+        "type": "object",
+        "description": "Successful retrieval of the authenticated user context.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Authenticated user retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "description": "Authenticated user's identity and authorization context.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "6520d31aef1b2b001ef0a123"
+              },
+              "username": {
+                "type": "string",
+                "example": "admin"
+              },
+              "email": {
+                "type": "string",
+                "example": "admin@acmehospital.com"
+              },
+              "firstName": {
+                "type": "string",
+                "example": "Alice"
+              },
+              "lastName": {
+                "type": "string",
+                "example": "Smith"
+              },
+              "systemRoles": {
+                "type": "array",
+                "description": "System-level roles assigned to the user.",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "tenant_admin"
+                ]
+              },
+              "permissions": {
+                "type": "array",
+                "description": "Fine-grained permissions resolved for the user.",
+                "items": {
+                  "type": "string"
+                },
+                "example": []
+              },
+              "memberships": {
+                "type": "array",
+                "description": "Tenant / provider / site membership contexts.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tenantId": {
+                      "type": "string",
+                      "example": "6512bd43d9caa6e02c990b0a"
+                    },
+                    "providerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "6520d33bef1b2b001ef0a124"
+                    },
+                    "siteId": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "provider_admin"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "active"
+                    }
+                  }
+                }
+              },
+              "authType": {
+                "type": "string",
+                "description": "Authentication source.",
+                "example": "platform"
+              }
+            }
+          }
+        }
+      },
+      "MeErrorResponse": {
+        "type": "object",
+        "description": "Failure response when authentication context is invalid or missing.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Authentication failed"
+          }
+        }
+      },
       "PlatformPasswordChangeRequest": {
         "type": "object",
         "required": [
@@ -4935,6 +5048,74 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthDecodeErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X GET \"http://localhost:8888/api/auth/me\" \\\n-H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/me\", {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\n\nconst result = await res.json();\nconsole.log(result);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/me\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n}\n\nresponse = requests.get(url, headers=headers)\nprint(response.json())\n"
+          },
+          {
+            "lang": "http",
+            "label": "HTTP (raw)",
+            "source": "GET /api/auth/me HTTP/1.1\nHost: http://localhost:8888\nAuthorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\n"
+          }
+        ],
+        "summary": "Get authenticated user context",
+        "description": "Returns the currently authenticated user's identity, roles, and membership context using a Phantom Token. This endpoint is commonly used by frontend applications to rehydrate session state after a page refresh.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user context retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeSuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired Phantom token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeErrorResponse"
                 }
               }
             }
