@@ -1535,6 +1535,34 @@
           }
         }
       },
+      "LogoutSuccessResponse": {
+        "type": "object",
+        "description": "Successful logout response.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Logged out successfully"
+          }
+        }
+      },
+      "LogoutErrorResponse": {
+        "type": "object",
+        "description": "Failure response when logout fails unexpectedly.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to logout user"
+          }
+        }
+      },
       "MeSuccessResponse": {
         "type": "object",
         "description": "Successful retrieval of the authenticated user context.",
@@ -3569,22 +3597,22 @@
       },
       "Tenant": {
         "type": "object",
-        "description": "Representation of a tenant entity in the system.",
+        "description": "Representation of a tenant (organization or customer account).",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Auto-generated unique ID (mirrors MongoDB `_id`).",
-            "example": "6512bd43d9caa6e02c990b0a"
+            "description": "Stable string identifier (mirrors MongoDB _id).",
+            "example": "6520d31aef1b2b001ef0a123"
           },
           "tenantCode": {
             "type": "string",
-            "description": "Server-generated unique code for the tenant (immutable).",
-            "example": "ACME001"
+            "description": "Unique business identifier for the tenant.",
+            "example": "ACME_HEALTH"
           },
           "name": {
             "type": "string",
             "description": "Display name of the tenant.",
-            "example": "Acme Corporation"
+            "example": "Acme Health Systems"
           },
           "status": {
             "type": "string",
@@ -3654,12 +3682,31 @@
           "createdAt": {
             "type": "string",
             "format": "date-time",
-            "example": "2025-09-30T12:34:56.000Z"
+            "example": "2025-01-11T09:30:00.000Z"
           },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
-            "example": "2025-09-30T12:34:56.000Z"
+            "example": "2025-01-11T10:15:00.000Z"
+          },
+          "legalName": {
+            "type": "string",
+            "description": "Legal registered name of the tenant.",
+            "example": "Acme Health Systems Oy"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Europe/Helsinki"
+          },
+          "dataResidency": {
+            "type": "string",
+            "enum": [
+              "eu",
+              "us",
+              "apac",
+              "global"
+            ],
+            "example": "eu"
           }
         }
       },
@@ -3778,6 +3825,65 @@
             "type": "object",
             "example": {
               "tenantCode": "ACME001"
+            }
+          }
+        }
+      },
+      "PaginatedTenants": {
+        "type": "object",
+        "description": "Paginated response for tenant listings.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tenant"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      },
+      "TenantSearchResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Tenants retrieved successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedTenants"
+          }
+        }
+      },
+      "TenantSearchErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Failed to search tenants"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "error": "Invalid tenantId format"
             }
           }
         }
@@ -5048,6 +5154,60 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthDecodeErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example",
+            "source": "curl -X POST \"http://localhost:8888/api/auth/logout\" \\\n-H \"Content-Type: application/json\" \\\n-b cookies.txt -c cookies.txt\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const res = await fetch(\"http://localhost:8888/api/auth/logout\", {\n  method: \"POST\",\n  credentials: \"include\"\n});\n\nconst result = await res.json();\nconsole.log(result);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/auth/logout\"\n\nresponse = requests.post(url, cookies={\"th_rt\": \"your_refresh_token\"})\nprint(response.json())\n"
+          },
+          {
+            "lang": "http",
+            "label": "HTTP (raw)",
+            "source": "POST /api/auth/logout HTTP/1.1\nHost: http://localhost:8888\nContent-Type: application/json\nCookie: th_rt=your_refresh_token\n"
+          }
+        ],
+        "summary": "Logout user",
+        "description": "Logs out the current user by invalidating the HttpOnly refresh token stored in cookies. This endpoint is idempotent and safe to call multiple times.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "User logged out successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutSuccessResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error during logout.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutErrorResponse"
                 }
               }
             }
@@ -6507,6 +6667,141 @@
           },
           "500": {
             "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/tenants/search": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example (by tenantCode)",
+            "source": "curl -X GET \"http://localhost:8888/api/tenants/search?tenantCode=ACME_HEALTH&page=1&limit=5\" \\\n  -H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "curl",
+            "label": "cURL example (full-text name search)",
+            "source": "curl -X GET \"http://localhost:8888/api/tenants/search?name=health%20systems&page=1&limit=10\" \\\n  -H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const query = new URLSearchParams({\n  tenantCode: \"ACME_HEALTH\",\n  page: \"1\",\n  limit: \"5\"\n});\n\nconst res = await fetch(`http://localhost:8888/api/tenants/search?${query.toString()}`, {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\n\nconst data = await res.json();\nconsole.log(data);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\nurl = \"http://localhost:8888/api/tenants/search\"\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n}\nparams = {\n    \"status\": \"active\",\n    \"page\": 1,\n    \"limit\": 10\n}\n\nresponse = requests.get(url, headers=headers, params=params)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Search or list tenants",
+        "description": "Retrieve a list of tenants with optional filters. Supports searching by exact `tenantId`, exact `tenantCode`, or full-text `name` search. If no filters are provided, returns the most recently updated tenants.\n",
+        "tags": [
+          "Tenant"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tenantId",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Exact tenant lookup by MongoDB ObjectId.",
+            "example": "6520d31aef1b2b001ef0a123"
+          },
+          {
+            "in": "query",
+            "name": "tenantCode",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Exact tenant lookup by business identifier.",
+            "example": "ACME_HEALTH"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "Full-text search on tenant name and aliases.",
+            "example": "health systems"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "active",
+                "suspended",
+                "closed"
+              ]
+            },
+            "required": false,
+            "description": "Filter tenants by lifecycle status.",
+            "example": "active"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false,
+            "description": "Page number for pagination."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false,
+            "description": "Number of results per page (max 100)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenants retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter or bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantSearchErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token"
+          },
+          "403": {
+            "description": "Forbidden - insufficient privileges"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
