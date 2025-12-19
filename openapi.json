@@ -3829,6 +3829,134 @@
           }
         }
       },
+      "TenantDetails": {
+        "type": "object",
+        "description": "Full detailed representation of a tenant (organization).",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable string identifier (mirrors MongoDB _id).",
+            "example": "6520d31aef1b2b001ef0a123"
+          },
+          "tenantCode": {
+            "type": "string",
+            "description": "Unique business identifier for the tenant.",
+            "example": "PALI-001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tenant.",
+            "example": "Pali Corporation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "prospect",
+              "active",
+              "suspended",
+              "closed"
+            ],
+            "example": "active"
+          },
+          "description": {
+            "type": "string",
+            "example": "Leading healthcare solutions provider."
+          },
+          "telecom": {
+            "type": "object",
+            "description": "Contact information for the tenant.",
+            "properties": {
+              "email": {
+                "type": "string",
+                "example": "info@pali.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "+1 (555) 123-4567"
+              },
+              "website": {
+                "type": "string",
+                "example": "https://www.pali.com"
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line1": {
+                  "type": "string",
+                  "example": "123 Main St, Los Angeles, CA"
+                },
+                "postalCode": {
+                  "type": "string",
+                  "example": "90310"
+                }
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/Los_Angeles"
+          },
+          "dataResidency": {
+            "type": "string",
+            "enum": [
+              "eu",
+              "us",
+              "apac",
+              "global"
+            ],
+            "example": "us"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-12-18T15:30:00.000Z"
+          }
+        }
+      },
+      "TenantDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Tenant retrieved successfully"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TenantDetails"
+          }
+        }
+      },
+      "TenantDetailsErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Tenant not found"
+          },
+          "details": {
+            "type": "object",
+            "example": {
+              "error": "Invalid tenant id"
+            }
+          }
+        }
+      },
       "PaginatedTenants": {
         "type": "object",
         "description": "Paginated response for tenant listings.",
@@ -6667,6 +6795,88 @@
           },
           "500": {
             "description": "Unexpected server error"
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}": {
+      "get": {
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL example (get tenant by ID)",
+            "source": "curl -X GET \"http://localhost:8888/api/tenants/6520d31aef1b2b001ef0a123\" \\\n  -H \"Authorization: Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (fetch)",
+            "source": "const tenantId = \"6520d31aef1b2b001ef0a123\";\n\nconst res = await fetch(`http://localhost:8888/api/tenants/${tenantId}`, {\n  method: \"GET\",\n  headers: {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n  }\n});\n\nconst data = await res.json();\nconsole.log(data);\n"
+          },
+          {
+            "lang": "javascript",
+            "label": "Node.js (axios)",
+            "source": "import axios from \"axios\";\n\nconst tenantId = \"6520d31aef1b2b001ef0a123\";\n\nconst res = await axios.get(\n  `http://localhost:8888/api/tenants/${tenantId}`,\n  {\n    headers: {\n      Authorization: \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n    }\n  }\n);\n\nconsole.log(res.data);\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python (requests)",
+            "source": "import requests\n\ntenant_id = \"6520d31aef1b2b001ef0a123\"\nurl = f\"http://localhost:8888/api/tenants/{tenant_id}\"\n\nheaders = {\n    \"Authorization\": \"Bearer phtm_AQIDBAUGBwgJCgsMDQ4PEA\"\n}\n\nresponse = requests.get(url, headers=headers)\nprint(response.json())\n"
+          }
+        ],
+        "summary": "Get tenant details",
+        "description": "Retrieve full details of a single tenant by its unique identifier. This endpoint is used by the Tenant Details page and returns a fully expanded tenant object.\n",
+        "tags": [
+          "Tenant"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "MongoDB ObjectId of the tenant.",
+            "example": "6520d31aef1b2b001ef0a123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tenant ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantDetailsErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token"
+          },
+          "403": {
+            "description": "Forbidden - insufficient privileges"
+          },
+          "404": {
+            "description": "Tenant not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
